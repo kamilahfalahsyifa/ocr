@@ -1,0 +1,33 @@
+name: snap_expense
+description: "SnapExpense - Flutter OCR Demo using Google ML Kit Text Recognition."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # OCR engine - Google ML Kit on-device text recognition (Latin script).
+  google_mlkit_text_recognition: ^0.15.1
+
+  # Camera + gallery image selection.
+  image_picker: ^1.2.2
+
+  # Lightweight state management.
+  provider: ^6.1.5+1
+
+  # Locale-aware currency / date formatting.
+  intl: ^0.20.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
