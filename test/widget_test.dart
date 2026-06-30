@@ -1,11 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:snap_expense/main.dart';
+import 'package:snap_expense/services/receipt_storage_service.dart';
 
 void main() {
-  testWidgets('Home screen renders SnapExpense branding and CTA',
+  testWidgets('Home screen renders SnapExpense branding and CTAs',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const SnapExpenseApp());
+    await tester.pumpWidget(SnapExpenseApp(storage: ReceiptStorageService()));
     // Pump a frame so the platform splash and first layout settle.
     await tester.pump();
 
@@ -20,5 +21,7 @@ void main() {
     );
     // Primary CTA.
     expect(find.text('Scan Receipt'), findsOneWidget);
+    // Secondary CTA for the History feature.
+    expect(find.text('Saved Receipts'), findsOneWidget);
   });
 }

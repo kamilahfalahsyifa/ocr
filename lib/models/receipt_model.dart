@@ -3,19 +3,9 @@ import '../helpers/receipt_parser_helper.dart';
 /// Immutable structured representation of a receipt.
 ///
 /// Built by [ReceiptParser] from raw OCR text and editable on the Review
-/// screen before being saved.
-///
-/// All fields are exposed as named parameters so the model can be reconstructed
-/// from any layer (OCR parser, user edits, or future persistence).
-///
-/// The optional [confidence] map carries per-field confidence scores from the
-/// parser — keyed by field name (`merchant`, `date`, `total`, `category`).
-/// Values are doubles in `[0.0, 1.0]`. The map is exposed primarily for the
-/// Developer Mode visualization; production UIs can ignore it.
-///
-/// The optional [debugTrace] records the parser's reasoning (candidates,
-/// rejections, chosen values) and is rendered in Developer Mode so the
-/// audience can see exactly why each field was chosen.
+/// screen before being saved. The optional [createdAt] timestamp is set
+/// when the user saves the receipt and is used by the History page to sort
+/// newest-first.
 class ReceiptModel {
   /// The merchant or store name printed on the receipt.
   final String merchant;
@@ -37,6 +27,10 @@ class ReceiptModel {
   /// Absolute path to the selected receipt image on the device filesystem.
   final String imagePath;
 
+  /// When the user saved the receipt. Used by the History page to sort
+  /// newest-first. Defaults to `DateTime.now()`.
+  final DateTime createdAt;
+
   /// Per-field confidence scores in `[0.0, 1.0]`. Keyed by field name.
   final Map<String, double> confidence;
 
@@ -49,21 +43,29 @@ class ReceiptModel {
   static const String fieldTotal = 'total';
   static const String fieldCategory = 'category';
 
-  const ReceiptModel({
+  /// JSON keys used by [toJson] / [fromJson] — kept in one place so the
+  /// serialization contract is obvious.
+  static const String _kMerchant = 'merchant';
+  static const String _kDate = 'date';
+  static const String _kTotal = 'total';
+  static const String _kCategory = 'category';
+  static const String _kRawText = 'rawText';
+  static const String _kImagePath = 'imagePath';
+  static const String _kCreatedAt = 'createdAt';
+
+  ReceiptModel({
     required this.merchant,
     required this.date,
     required this.total,
     required this.category,
     required this.rawText,
     required this.imagePath,
+    DateTime? createdAt,
     this.confidence = const <String, double>{},
     this.debugTrace,
-  });
+  }) : createdAt = createdAt ?? DateTime.now();
 
   /// Returns a copy of this receipt with any subset of fields replaced.
-  ///
-  /// Used by the Review screen when the user edits individual fields before
-  /// saving.
   ReceiptModel copyWith({
     String? merchant,
     String? date,
@@ -71,6 +73,7 @@ class ReceiptModel {
     String? category,
     String? rawText,
     String? imagePath,
+    DateTime? createdAt,
     Map<String, double>? confidence,
     DebugTrace? debugTrace,
   }) {
@@ -81,6 +84,7 @@ class ReceiptModel {
       category: category ?? this.category,
       rawText: rawText ?? this.rawText,
       imagePath: imagePath ?? this.imagePath,
+      createdAt: createdAt ?? this.createdAt,
       confidence: confidence ?? this.confidence,
       debugTrace: debugTrace ?? this.debugTrace,
     );
@@ -88,4 +92,38 @@ class ReceiptModel {
 
   /// Convenience getter — confidence for [fieldName] or `0.0` if unset.
   double confidenceFor(String fieldName) => confidence[fieldName] ?? 0.0;
+
+  /// Serializes the persistable fields to a JSON-compatible map. Confidence
+  /// and the parser debug trace are intentionally omitted — they're session
+  /// state, not history state.
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    _kMerchant: merchant,
+    _kDate: date,
+    _kTotal: total,
+    _kCategory: category,
+    _kRawText: rawText,
+    _kImagePath: imagePath,
+    _kCreatedAt: createdAt.toIso8601String(),
+  };
+
+  /// Re-hydrates a [ReceiptModel] from the map produced by [toJson]. Missing
+  /// fields fall back to safe defaults so older saves keep loading.
+  factory ReceiptModel.fromJson(Map<dynamic, dynamic> json) {
+    DateTime createdAt;
+    final raw = json[_kCreatedAt];
+    if (raw is String) {
+      createdAt = DateTime.tryParse(raw) ?? DateTime.now();
+    } else {
+      createdAt = DateTime.now();
+    }
+    return ReceiptModel(
+      merchant: (json[_kMerchant] as String?) ?? '',
+      date: (json[_kDate] as String?) ?? '',
+      total: (json[_kTotal] as String?) ?? '',
+      category: (json[_kCategory] as String?) ?? '',
+      rawText: (json[_kRawText] as String?) ?? '',
+      imagePath: (json[_kImagePath] as String?) ?? '',
+      createdAt: createdAt,
+    );
+  }
 }

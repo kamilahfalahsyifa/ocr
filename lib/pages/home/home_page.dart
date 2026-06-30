@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../providers/receipt_provider.dart';
+import '../history_page.dart';
 import '../scan/scan_page.dart';
 
 /// Home (landing) screen.
@@ -76,8 +77,8 @@ class HomePage extends StatelessWidget {
             children: [
               const Spacer(),
               Container(
-                width: 160,
-                height: 160,
+                width: 132,
+                height: 132,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primaryContainer,
@@ -85,11 +86,11 @@ class HomePage extends StatelessWidget {
                 ),
                 child: Icon(
                   Icons.receipt_long,
-                  size: 80,
+                  size: 64,
                   color: theme.colorScheme.onPrimaryContainer,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Text(
                 AppStrings.appSubtitle,
                 textAlign: TextAlign.center,
@@ -97,22 +98,32 @@ class HomePage extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
                 AppStrings.appDescription,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodyLarge?.copyWith(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   height: 1.4,
                 ),
               ),
-              const Spacer(),
+              const Spacer(flex: 2),
               FilledButton.icon(
                 onPressed: () => _onScanPressed(context),
                 icon: const Icon(Icons.document_scanner_outlined),
                 label: const Text(AppStrings.scanReceipt),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const HistoryPage(),
+                  ),
+                ),
+                icon: const Icon(Icons.history),
+                label: const Text('Saved Receipts'),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

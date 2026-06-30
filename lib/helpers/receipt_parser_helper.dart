@@ -170,7 +170,6 @@ class ReceiptParser {
       return const _Pick(value: 'Unknown Merchant', confidence: 0.0);
     }
 
-    // STEP 2 — drop noisy lines that can never be the merchant.
     final candidates = <_MerchantCandidate>[];
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
@@ -186,14 +185,12 @@ class ReceiptParser {
       return const _Pick(value: 'Unknown Merchant', confidence: 0.0);
     }
 
-    // STEP 4 — pick the highest score.
     candidates.sort((a, b) => b.score.compareTo(a.score));
     final best = candidates.first;
     trace.merchantCandidates
       ..clear()
       ..addAll(candidates.map((c) => '${c.line} (${c.score})'));
 
-    // Map the raw integer score onto a 0.0-1.0 confidence for the UI.
     final confidence = (best.score / 210.0).clamp(0.0, 0.99);
     return _Pick(
       value: best.line,
@@ -207,7 +204,6 @@ class ReceiptParser {
   bool _isMerchantNoisyLine(String line) {
     final lower = line.toLowerCase();
 
-    // Hard length / shape rules.
     if (line.length < 4) return true;
     if (RegExp(r'^[\d\s\W]+$').hasMatch(line)) return true;
     final digitCount = RegExp(r'\d').allMatches(line).length;
@@ -215,14 +211,15 @@ class ReceiptParser {
     if (!RegExp(r'[A-Za-z]').hasMatch(line)) return true;
     if (RegExp(r'^[#@_\-=*~`]+$').hasMatch(line)) return true;
 
-    // Keyword-based filters — these tokens almost never identify a store.
     const noiseTokens = <String>[
       'instagram',
       'tiktok',
       'facebook',
       'follow us',
       'alamat',
+      'address',
       'cs:',
+      'cs/',
       'member',
       'kasir',
       'order',
@@ -231,13 +228,11 @@ class ReceiptParser {
       'download',
       'share',
       'thank you',
-      'terimakasih',
-      'www',
-      'http',
-      '@',
-      '#',
-      'poin',
+      'terima kasih',
+      'change',
+      'kembali',
       'transfer',
+      'total item',
       'customer copy',
       'tax invoice',
       'cashier',

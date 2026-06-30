@@ -54,7 +54,24 @@ class _ReviewPageState extends State<ReviewPage> {
     );
 
     final saved = await provider.saveReceipt();
-    if (!mounted || !saved) return;
+    if (!mounted) return;
+
+    if (saved) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Receipt saved successfully')),
+        );
+    } else {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Could not save receipt. Please try again.'),
+          ),
+        );
+      return;
+    }
 
     await showDialog<void>(
       context: context,

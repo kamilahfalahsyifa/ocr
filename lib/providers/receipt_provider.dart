@@ -7,6 +7,7 @@ import '../helpers/receipt_parser_helper.dart';
 import '../helpers/receipt_text_normalizer.dart';
 import '../models/receipt_model.dart';
 import '../services/ocr_service.dart';
+import '../services/receipt_storage_service.dart';
 
 /// Stage of the OCR pipeline that the UI can highlight in Developer Mode.
 enum PipelineStage {
@@ -25,14 +26,17 @@ enum PipelineStage {
 /// is no other mutable application state.
 class ReceiptProvider extends ChangeNotifier {
   ReceiptProvider({
+    required ReceiptStorageService storage,
     OCRService? ocrService,
     ReceiptParser? parser,
     ReceiptTextNormalizer? normalizer,
     ImagePicker? imagePicker,
-  })  : _ocrService = ocrService ?? OCRService(),
+  })  : _storage = storage,
+        _ocrService = ocrService ?? OCRService(),
         _parser = parser ?? ReceiptParser(normalizer: normalizer),
         _imagePicker = imagePicker ?? ImagePicker();
 
+  final ReceiptStorageService _storage;
   final OCRService _ocrService;
   final ReceiptParser _parser;
   final ImagePicker _imagePicker;
@@ -170,17 +174,29 @@ class ReceiptProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Simulates persisting the receipt. Per the project spec there is no
-  /// database — this just flips a saving flag for the UI, with a brief
-  /// delay so the user sees a loading state.
+  /// Persists the current receipt via the injected [ReceiptStorageService].
+  /// The UI sees a brief saving flag so the user knows the operation is in
+  /// flight, then receives a boolean indicating success.
   Future<bool> saveReceipt() async {
     if (_receipt == null) return false;
     _isSaving = true;
     notifyListeners();
-    await Future<void>.delayed(const Duration(milliseconds: 350));
-    _isSaving = false;
-    notifyListeners();
-    return true;
+
+    // Refresh `createdAt` to the moment of save so the History page orders
+    // re-edited receipts at the top.
+    final fresh = _receipt!.copyWith(createdAt: DateTime.now());
+    _receipt = fresh;
+
+    bool ok = true;
+    try {
+      await _storage.saveReceipt(fresh);
+    } catch (e) {
+      ok = false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+    return ok;
   }
 
   /// Clears any error set during the last pipeline run.
