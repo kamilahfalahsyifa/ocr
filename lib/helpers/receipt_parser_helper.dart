@@ -40,8 +40,6 @@ class ReceiptParser {
     'vivo': 'Fuel',
   };
 
-  /// Total keywords in priority order — most-specific first. The parser
-  /// picks the **last** matching line in the receipt.
   static const List<String> _totalKeywords = [
     'TOTAL BELANJA',
     'GRAND TOTAL',
@@ -52,9 +50,7 @@ class ReceiptParser {
     'AMOUNT',
   ];
 
-  /// Lines whose presence disqualifies them from contributing a total:
-  /// they refer to related-but-different amounts (tax, point balances, item
-  /// counts). Per spec: PPN, DPP, POINT, ITEM, MEMBER.
+
   static const Set<String> _totalRejectLineKeywords = {
     'PPN',
     'DPP',
@@ -77,9 +73,7 @@ class ReceiptParser {
     'DATE',
   ];
 
-  /// Parses [rawText] (as returned by Google ML Kit) into a [ReceiptModel]
-  /// tagged with [imagePath]. The model fields are filled with best-effort
-  /// defaults; the user can refine them on the Review screen.
+
   ReceiptModel parse({
     required String rawText,
     required String imagePath,
@@ -258,6 +252,7 @@ class ReceiptParser {
     var score = 0;
     final upper = line.toUpperCase();
     final lower = line.toLowerCase();
+
 
     // +40 ALL CAPS — ignore single-letter differences like punctuation.
     final letters = line.replaceAll(RegExp(r'[^A-Za-z]'), '');
