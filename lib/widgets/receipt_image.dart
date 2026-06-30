@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-/// Renders the user-selected receipt image inside a rounded card with a
-/// subtle border. Used at the top of the Result screen.
 class ReceiptImage extends StatelessWidget {
   const ReceiptImage({required this.imagePath, super.key});
 

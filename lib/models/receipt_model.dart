@@ -93,9 +93,7 @@ class ReceiptModel {
   /// Convenience getter — confidence for [fieldName] or `0.0` if unset.
   double confidenceFor(String fieldName) => confidence[fieldName] ?? 0.0;
 
-  /// Serializes the persistable fields to a JSON-compatible map. Confidence
-  /// and the parser debug trace are intentionally omitted — they're session
-  /// state, not history state.
+
   Map<String, dynamic> toJson() => <String, dynamic>{
     _kMerchant: merchant,
     _kDate: date,
@@ -106,8 +104,7 @@ class ReceiptModel {
     _kCreatedAt: createdAt.toIso8601String(),
   };
 
-  /// Re-hydrates a [ReceiptModel] from the map produced by [toJson]. Missing
-  /// fields fall back to safe defaults so older saves keep loading.
+
   factory ReceiptModel.fromJson(Map<dynamic, dynamic> json) {
     DateTime createdAt;
     final raw = json[_kCreatedAt];

@@ -1,46 +1,19 @@
 import '../models/receipt_model.dart';
 import 'receipt_text_normalizer.dart';
 
-/// Pure-Dart parser that converts raw OCR text into a structured [ReceiptModel].
-///
-/// Pipeline: normalize OCR -> split into lines -> extract merchant / date /
-/// total / category. Each step records its candidates + rejection reasons
-/// into a [DebugTrace] attached to the result so the Developer Mode UI can
-/// show the audience exactly why a field was chosen.
 class ReceiptParser {
-  /// Optional [normalizer] is accepted for backwards compatibility with
-  /// existing callers (the provider passes one via
-  /// `ReceiptParser(normalizer: ...)`); it is ignored — [normalize] is a
-  /// static helper.
+
   const ReceiptParser({Object? normalizer});
 
-  /// Cleans up OCR mistakes before line-by-line parsing runs.
-  ///
-  /// * `O` / `o` -> `0` **inside numeric tokens only** (never in merchant
-  ///   names like `Kopi`).
-  /// * Collapse duplicated whitespace, remove invisible characters,
-  ///   normalize line endings.
-  /// * Strip currency-symbol punctuation (`Rp.` -> `Rp`).
-  /// * Trim every line.
-  ///
-  /// Runs **before** parsing so every regex downstream operates on a clean
-  /// string. Returns the normalized text — same content but safer for the
-  /// parser.
   static String normalize(String text) {
     return const ReceiptTextNormalizer().normalize(text);
   }
 
-  /// Plausible lower/upper bounds for a real receipt total in IDR.
   static const double _totalMinReasonable = 1000;
   static const double _totalMaxReasonable = 10000000;
 
-  /// Reject any candidate amount with more than this many digits. Capping at
-  /// 8 keeps things sensible while still allowing up to Rp 99.999.999.
   static const int _maxAcceptableDigits = 8;
 
-  /// Known merchants -> spending category. Lowercase keys; matched via
-  /// case-insensitive [String.contains] across the full normalized text.
-  /// Order matters — the first match wins.
   static const Map<String, String> _merchantCategoryMap = {
     'alfamart': 'Grocery',
     'indomaret': 'Grocery',

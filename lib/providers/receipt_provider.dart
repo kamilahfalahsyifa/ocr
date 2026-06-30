@@ -120,9 +120,7 @@ class ReceiptProvider extends ChangeNotifier {
     try {
       final file = File(path);
 
-      // Files smaller than 4 KB are usually blurry / blank — ML Kit tends
-      // to return empty text on those. A production app would analyse
-      // image variance; this is a pragmatic shortcut for the demo.
+
       final tooBlurry = file.lengthSync() < 4 * 1024;
 
       final rawText = await _ocrService.recognizeText(file);

@@ -1,20 +1,8 @@
-/// Pure-Dart utility that cleans up raw OCR text before it reaches the parser.
-///
-/// Google ML Kit is usually accurate but it does produce noise — common
-/// mistakes on thermal receipts include:
-///   * `O` for `0`, `o` for `0`, `I`/`l` for `1`, `S` for `5`
-///   * Punctuation inserted into numbers (`Rp.44.OOO`)
-///   * Multiple consecutive spaces
-///   * Curly / fancy quotes that confuse downstream regexes
-///
-/// Running the text through [ReceiptTextNormalizer.normalize] before parsing
-/// dramatically improves the hit-rate of every regex that the parser uses.
+
+
 class ReceiptTextNormalizer {
   const ReceiptTextNormalizer();
 
-  /// Cleans up [raw] OCR text. The transformation is intentionally
-  /// conservative — it never deletes alphanumeric characters, only swaps
-  /// known-ambiguous glyphs and tidies spacing.
   String normalize(String raw) {
     if (raw.isEmpty) return raw;
 
@@ -46,10 +34,6 @@ class ReceiptTextNormalizer {
     return line.replaceAll(RegExp(r'[ \t]+'), ' ').trim();
   }
 
-  /// Replaces ambiguous characters inside tokens that already contain digits.
-  ///
-  /// Outside such tokens we leave letters alone so we never corrupt merchant
-  /// names like `McDonald's`.
   String _fixNumericTokens(String s) {
     return s.replaceAllMapped(
       RegExp(r'[A-Za-z0-9][A-Za-z0-9.,\-]*[A-Za-z0-9]|[A-Za-z0-9]'),
@@ -61,13 +45,6 @@ class ReceiptTextNormalizer {
     );
   }
 
-  /// Fixes *word-shape* OCR mistakes on common receipt keywords.
-  ///
-  /// `T0TAL`, `T0TAL BELANJA`, `TOTAl`, `TOTA1`, `JUMLAH` etc. are token
-  /// shapes [_fixNumericTokens] would leave alone because the token contains
-  /// no digits. We recognise the canonical keyword patterns (case-insensitive,
-  /// digit-tolerant) and rewrite them to the canonical spelling so the
-  /// parser's keyword search hits.
   String _fixKeywordTokens(String s) {
     var out = s;
     out = out.replaceAllMapped(
@@ -85,8 +62,6 @@ class ReceiptTextNormalizer {
     return out;
   }
 
-  /// Returns true if [token] contains at least one digit and is short enough
-  /// to plausibly be a price / quantity.
   bool _looksNumeric(String token) {
     if (!RegExp(r'\d').hasMatch(token)) return false;
     if (token.length > 24) return false;
@@ -96,13 +71,6 @@ class ReceiptTextNormalizer {
     return separators <= 2;
   }
 
-  /// Performs the actual character swaps on a numeric-ish token.
-  ///
-  /// Substitutions:
-  ///   * `O` / `o` -> `0`
-  ///   * `I` / `l` / `|` -> `1`
-  ///   * `S` / `s` (only when surrounded by digits) -> `5`
-  ///   * stray `;` / `_` inside the token are dropped
   String _swapAmbiguous(String token) {
     final buf = StringBuffer();
     for (var i = 0; i < token.length; i++) {

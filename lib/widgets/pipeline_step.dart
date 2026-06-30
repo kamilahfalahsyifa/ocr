@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Single row in the Developer-Mode pipeline visualization.
-///
-/// Shows the icon + label for a pipeline stage, with a green checkmark when
-/// the stage is [completed].
+
 class PipelineStep extends StatelessWidget {
   const PipelineStep({
     required this.icon,
@@ -13,16 +10,12 @@ class PipelineStep extends StatelessWidget {
     super.key,
   });
 
-  /// Emoji / icon shown on the left side of the row.
   final String icon;
 
-  /// Stage description, e.g. "Google ML Kit OCR".
   final String label;
 
-  /// Whether this stage has finished executing.
   final bool completed;
 
-  /// Whether this is the last row (suppresses the connector line below).
   final bool isLast;
 
   @override

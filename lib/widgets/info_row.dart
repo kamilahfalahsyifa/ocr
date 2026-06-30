@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// A single label/value row used inside a [Card] on the Result and Review
-/// screens.
-///
-/// Keeps the rendered output consistent and removes repeated `Row`/`Text`
-/// boilerplate from the screens.
 class InfoRow extends StatelessWidget {
   const InfoRow({
     required this.label,
